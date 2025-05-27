@@ -1,0 +1,150 @@
+/* ProfilePage.css */
+
+.profile-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e3f0ff 0%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 0;
+}
+
+.profile-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
+    padding: 36px 32px 32px 32px;
+    position: relative;
+}
+
+.profile-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #e0edff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+
+.profile-title {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #22223b;
+    margin-bottom: 4px;
+}
+
+.profile-email {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.profile-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 24px;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 2px;
+}
+
+.profile-input {
+    border: 1px solid #d1d5db;
+    padding: 10px 12px;
+    border-radius: 8px;
+    width: 100%;
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.profile-input:focus {
+    border: 1.5px solid #2563eb;
+}
+
+.profile-btn {
+    padding: 10px 0;
+    border-radius: 8px;
+    width: 100%;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.profile-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.profile-btn-blue {
+    background: #2563eb;
+    color: #fff;
+}
+
+.profile-btn-blue:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.profile-btn-yellow {
+    background: #fbbf24;
+    color: #fff;
+}
+
+.profile-btn-yellow:hover:not(:disabled) {
+    background: #f59e0b;
+}
+
+.profile-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 10px 0;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.profile-success {
+    background: #d1fae5;
+    color: #047857;
+    padding: 10px 0;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.profile-loading {
+    padding: 24px;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #374151;
+}

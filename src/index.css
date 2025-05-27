@@ -1,0 +1,27 @@
+/* Minimal, clean base styles for the app (no Tailwind) */
+:root {
+  font-family: 'Inter', system-ui, sans-serif;
+  color-scheme: light;
+  background: #f8fafc;
+  color: #222;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
