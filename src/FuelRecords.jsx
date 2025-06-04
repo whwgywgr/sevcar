@@ -26,6 +26,9 @@ export default function FuelRecords() {
     const [filter, setFilter] = useState('1m');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [editId, setEditId] = useState(null);
+    const [editAmount, setEditAmount] = useState('');
+    const [editDate, setEditDate] = useState('');
     const notify = useNotification();
 
     const fetchRecords = React.useCallback(async () => {
@@ -60,6 +63,47 @@ export default function FuelRecords() {
         }
         setAmount('');
         setDate('');
+        fetchRecords();
+        setLoading(false);
+    };
+
+    const handleEdit = (record) => {
+        setEditId(record.id);
+        setEditAmount(record.amount);
+        setEditDate(record.date);
+    };
+
+    const handleEditSave = async (id) => {
+        setLoading(true);
+        setError('');
+        const { error } = await supabase.from('fuel_records').update({
+            amount: parseFloat(editAmount),
+            date: editDate,
+        }).eq('id', id);
+        if (error) {
+            setError(error.message);
+            notify(error.message, 'error');
+        } else {
+            notify('Fuel record updated', 'success');
+        }
+        setEditId(null);
+        setEditAmount('');
+        setEditDate('');
+        fetchRecords();
+        setLoading(false);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Delete this record?')) return;
+        setLoading(true);
+        setError('');
+        const { error } = await supabase.from('fuel_records').delete().eq('id', id);
+        if (error) {
+            setError(error.message);
+            notify(error.message, 'error');
+        } else {
+            notify('Fuel record deleted', 'success');
+        }
         fetchRecords();
         setLoading(false);
     };
@@ -111,18 +155,40 @@ export default function FuelRecords() {
                         <tr>
                             <th>Date</th>
                             <th>Amount (RM)</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {records.length === 0 && (
                             <tr>
-                                <td colSpan={2} style={{ textAlign: 'center', color: '#888', padding: '1em' }}>No records</td>
+                                <td colSpan={3} style={{ textAlign: 'center', color: '#888', padding: '1em' }}>No records</td>
                             </tr>
                         )}
                         {records.map(r => (
                             <tr key={r.id}>
-                                <td>{r.date}</td>
-                                <td>RM {Number(r.amount).toFixed(2)}</td>
+                                {editId === r.id ? (
+                                    <>
+                                        <td>
+                                            <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} />
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} />
+                                        </td>
+                                        <td>
+                                            <button onClick={() => handleEditSave(r.id)} disabled={loading}>Save</button>
+                                            <button className="secondary" onClick={() => setEditId(null)} disabled={loading}>Cancel</button>
+                                        </td>
+                                    </>
+                                ) : (
+                                    <>
+                                        <td>{r.date}</td>
+                                        <td>RM {Number(r.amount).toFixed(2)}</td>
+                                        <td>
+                                            <button className="secondary" onClick={() => handleEdit(r)}>Edit</button>
+                                            <button style={{ marginLeft: 4 }} onClick={() => handleDelete(r.id)} disabled={loading}>Delete</button>
+                                        </td>
+                                    </>
+                                )}
                             </tr>
                         ))}
                     </tbody>
