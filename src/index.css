@@ -1,27 +1,126 @@
-/* Minimal, clean base styles for the app (no Tailwind) */
-:root {
-  font-family: 'Inter', system-ui, sans-serif;
-  color-scheme: light;
-  background: #f8fafc;
-  color: #222;
+/* Modernized global styles for better UI/UX */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background: #f8fafc;
-}
-
-:focus:not(:focus-visible) {
-  outline: none;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: #f4f7fb;
+    color: #222;
+    min-height: 100vh;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
 }
 
 a {
-  color: #2563eb;
-  text-decoration: none;
+    color: #2563eb;
+    text-decoration: none;
+    transition: color 0.2s;
 }
 
 a:hover {
-  text-decoration: underline;
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.6em 1.1em;
+    background: #fff;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+button {
+    background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.07);
+}
+
+button.secondary {
+    background: #f3f4f6;
+    color: #2563eb;
+    border: 1.5px solid #dbeafe;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled),
+button:focus:not(:disabled) {
+    filter: brightness(1.08);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.10);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #2563eb;
+    outline: none;
+    box-shadow: 0 0 0 2px #dbeafe;
+}
+
+.container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8em;
+    margin-bottom: 1.2em;
+}
+
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 1em;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.custom-table th,
+.custom-table td {
+    padding: 0.7em 1em;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.custom-table th {
+    background: #f1f5f9;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.custom-table tr:last-child td {
+    border-bottom: none;
 }

@@ -28,7 +28,7 @@ export default function FuelRecords() {
     const [error, setError] = useState('');
     const notify = useNotification();
 
-    const fetchRecords = async () => {
+    const fetchRecords = React.useCallback(async () => {
         setLoading(true);
         setError('');
         let query = supabase.from('fuel_records').select('*').order('date', { ascending: false });
@@ -38,9 +38,9 @@ export default function FuelRecords() {
         if (error) setError(error.message);
         else setRecords(data);
         setLoading(false);
-    };
+    }, [filter]);
 
-    useEffect(() => { fetchRecords(); }, [filter]);
+    useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
     const handleAdd = async (e) => {
         e.preventDefault();

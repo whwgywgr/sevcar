@@ -6,10 +6,13 @@ import FuelRecords from './FuelRecords';
 import MaintenanceRecords from './MaintenanceRecords';
 import ProfilePage from './ProfilePage';
 import { NotificationProvider, useNotification } from './Notification';
+import BottomNav from './BottomNav';
+import './BottomNav.css';
 
 function AppContent() {
   const [session, setSession] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
   const notify = useNotification();
 
   useEffect(() => {
@@ -33,32 +36,44 @@ function AppContent() {
     }} />;
   }
 
-  if (showProfile) {
+  if (showProfile || activeTab === 'profile') {
     return (
-      <div style={{ minHeight: '100vh', background: '#f3f4f6', padding: '1rem' }}>
-        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>Profile</h1>
-            <button className="secondary" onClick={() => setShowProfile(false)}>
+      <div className="app-bg">
+        <div className="app-container">
+          <div className="app-header">
+            <h1 className="app-title">Profile</h1>
+            <button className="secondary app-btn" onClick={() => { setShowProfile(false); setActiveTab('home'); }}>
               Back
             </button>
           </div>
           <ProfilePage />
         </div>
+        <BottomNav
+          active="profile"
+          onNavigate={tab => {
+            setShowProfile(tab === 'profile');
+            setActiveTab(tab);
+          }}
+          onLogout={async () => {
+            await supabase.auth.signOut();
+            setSession(null);
+            notify('Logged out', 'success');
+          }}
+        />
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6', padding: '1rem' }}>
-      <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>Car Maintenance & Fuel Tracker</h1>
-          <div style={{ display: 'flex', gap: '0.5em' }}>
-            <button onClick={() => setShowProfile(true)}>
+    <div className="app-bg">
+      <div className="app-container">
+        <div className="app-header">
+          <h1 className="app-title">Car Maintenance & Fuel Tracker</h1>
+          <div className="app-btn-group">
+            <button className="app-btn" onClick={() => { setShowProfile(true); setActiveTab('profile'); }}>
               Profile
             </button>
-            <button className="secondary" onClick={async () => {
+            <button className="secondary app-btn" onClick={async () => {
               await supabase.auth.signOut();
               setSession(null);
               notify('Logged out', 'success');
@@ -67,11 +82,23 @@ function AppContent() {
             </button>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5em' }}>
-          <FuelRecords />
-          <MaintenanceRecords />
+        <div className="app-grid">
+          {(activeTab === 'home' || activeTab === 'fuel') && <FuelRecords />}
+          {(activeTab === 'home' || activeTab === 'maintenance') && <MaintenanceRecords />}
         </div>
       </div>
+      <BottomNav
+        active={activeTab}
+        onNavigate={tab => {
+          setShowProfile(tab === 'profile');
+          setActiveTab(tab);
+        }}
+        onLogout={async () => {
+          await supabase.auth.signOut();
+          setSession(null);
+          notify('Logged out', 'success');
+        }}
+      />
     </div>
   );
 }

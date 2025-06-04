@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
 import { useNotification } from './Notification';
+import './AuthPage.css';
 
 export default function AuthPage({ onAuth }) {
     const [email, setEmail] = useState('');
@@ -34,14 +35,15 @@ export default function AuthPage({ onAuth }) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="w-full max-w-sm p-6 bg-white rounded shadow">
-                <h2 className="text-2xl font-bold mb-4 text-center">
+        <div className="auth-bg">
+            <div className="auth-card">
+                <div className="auth-logo" aria-label="Car Logo">🚗</div>
+                <h2 className="auth-title">
                     {isLogin ? 'Login' : 'Register'}
                 </h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="auth-form">
                     <input
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
+                        className="auth-input"
                         type="email"
                         placeholder="Email"
                         value={email}
@@ -49,30 +51,28 @@ export default function AuthPage({ onAuth }) {
                         required
                     />
                     <input
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
+                        className="auth-input"
                         type="password"
                         placeholder="Password"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                         required
                     />
-                    {error && <div className="text-red-500 text-sm">{error}</div>}
+                    {error && <div className="auth-error">{error}</div>}
                     <button
-                        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                        className="auth-btn"
                         type="submit"
                         disabled={loading}
                     >
                         {loading ? 'Loading...' : isLogin ? 'Login' : 'Register'}
                     </button>
                 </form>
-                <div className="mt-4 text-center">
-                    <button
-                        className="text-blue-600 hover:underline text-sm"
-                        onClick={() => setIsLogin(!isLogin)}
-                    >
-                        {isLogin ? 'No account? Register' : 'Have an account? Login'}
-                    </button>
-                </div>
+                <button
+                    className="auth-toggle"
+                    onClick={() => setIsLogin(!isLogin)}
+                >
+                    {isLogin ? 'No account? Register' : 'Have an account? Login'}
+                </button>
             </div>
         </div>
     );

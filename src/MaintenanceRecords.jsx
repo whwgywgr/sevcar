@@ -54,8 +54,8 @@ export default function MaintenanceRecords() {
     };
 
     return (
-        <div style={{ maxWidth: '36rem', margin: '0 auto', padding: '1rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Maintenance Records</h2>
+        <div>
+            <h2>Maintenance Records</h2>
             <form onSubmit={handleAdd} className="form-grid">
                 <input
                     type="text"
@@ -85,12 +85,12 @@ export default function MaintenanceRecords() {
                     onChange={e => setDate(e.target.value)}
                     required
                 />
-                <button style={{ gridColumn: '1 / -1' }} disabled={loading}>
+                <button disabled={loading}>
                     Add
                 </button>
             </form>
-            {error && <div style={{ color: '#e11d48', marginBottom: '0.5em' }}>{error}</div>}
-            <div className="table-container">
+            {error && <div>{error}</div>}
+            <div>
                 <table className="custom-table">
                     <thead>
                         <tr>
@@ -103,7 +103,7 @@ export default function MaintenanceRecords() {
                     <tbody>
                         {records.length === 0 && (
                             <tr>
-                                <td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: '1em' }}>No records</td>
+                                <td colSpan={4}>No records</td>
                             </tr>
                         )}
                         {records.map((r) => (
