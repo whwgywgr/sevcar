@@ -1,5 +1,6 @@
 // Simple notification system for React (no external dependencies)
-import React, { useState, useCallback, useEffect, createContext, useContext } from 'react';
+import React, { useState, useCallback, createContext, useContext } from 'react';
+import { Snackbar, Alert } from '@mui/material';
 
 const NotificationContext = createContext();
 
@@ -12,7 +13,7 @@ export function NotificationProvider({ children }) {
 
     const showNotification = useCallback((message, type = 'info', duration = 2500) => {
         const id = Date.now() + Math.random();
-        setNotifications((prev) => [...prev, { id, message, type }]);
+        setNotifications((prev) => [...prev, { id, message, type, open: true }]);
         setTimeout(() => {
             setNotifications((prev) => prev.filter((n) => n.id !== id));
         }, duration);
@@ -21,11 +22,11 @@ export function NotificationProvider({ children }) {
     return (
         <NotificationContext.Provider value={showNotification}>
             {children}
-            <div className="notification-container">
-                {notifications.map((n) => (
-                    <div key={n.id} className={`notification notification-${n.type}`}>{n.message}</div>
-                ))}
-            </div>
+            {notifications.map((n) => (
+                <Snackbar key={n.id} open={n.open} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+                    <Alert severity={n.type} sx={{ width: '100%' }}>{n.message}</Alert>
+                </Snackbar>
+            ))}
         </NotificationContext.Provider>
     );
 }

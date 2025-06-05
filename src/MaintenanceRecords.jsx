@@ -1,9 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import './App.css';
 import { useNotification } from './Notification';
+import { Box, Typography, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, IconButton } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
 
-export default function MaintenanceRecords() {
+// AnimatedDialog for smooth dialog transitions
+function AnimatedDialog({ open, onClose, children, ...props }) {
+    return (
+        <AnimatePresence>
+            {open && (
+                <Dialog
+                    open={open}
+                    onClose={onClose}
+                    PaperProps={{
+                        component: motion.div,
+                        initial: { opacity: 0, y: 40, scale: 0.98 },
+                        animate: { opacity: 1, y: 0, scale: 1 },
+                        exit: { opacity: 0, y: -40, scale: 0.98 },
+                        transition: { duration: 0.28, ease: 'easeInOut' },
+                        style: { overflow: 'visible' },
+                    }}
+                    {...props}
+                >
+                    {children}
+                </Dialog>
+            )}
+        </AnimatePresence>
+    );
+}
+
+export default function MaintenanceRecords({ showAdd, setShowAdd }) {
     const [problem, setProblem] = useState('');
     const [serviceAt, setServiceAt] = useState('');
     const [amount, setAmount] = useState('');
@@ -106,89 +136,97 @@ export default function MaintenanceRecords() {
     };
 
     return (
-        <div>
-            <h2>Maintenance Records</h2>
-            <form onSubmit={handleAdd} className="form-grid">
-                <input
-                    type="text"
-                    placeholder="Problem"
-                    value={problem}
-                    onChange={e => setProblem(e.target.value)}
-                    required
-                />
-                <input
-                    type="text"
-                    placeholder="Service Location"
-                    value={serviceAt}
-                    onChange={e => setServiceAt(e.target.value)}
-                    required
-                />
-                <input
-                    type="number"
-                    step="0.01"
-                    placeholder="Amount (RM)"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    required
-                />
-                <input
-                    type="date"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                    required
-                />
-                <button disabled={loading}>
-                    Add
-                </button>
-            </form>
-            {error && <div>{error}</div>}
-            <div>
-                <table className="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Problem</th>
-                            <th>Service Location</th>
-                            <th>Amount (RM)</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        <Box maxWidth={600} mx="auto" my={2} position="relative">
+            <Typography variant="h5" fontWeight={700} mb={2}>Maintenance Records</Typography>
+            <AnimatedDialog open={showAdd} onClose={() => setShowAdd(false)}>
+                <DialogTitle>Add Maintenance Record</DialogTitle>
+                <form onSubmit={handleAdd}>
+                    <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                            label="Problem"
+                            value={problem}
+                            onChange={e => setProblem(e.target.value)}
+                            required
+                            autoFocus
+                        />
+                        <TextField
+                            label="Service Location"
+                            value={serviceAt}
+                            onChange={e => setServiceAt(e.target.value)}
+                            required
+                        />
+                        <TextField
+                            label="Amount (RM)"
+                            type="number"
+                            inputProps={{ step: '0.01' }}
+                            value={amount}
+                            onChange={e => setAmount(e.target.value)}
+                            required
+                        />
+                        <TextField
+                            label="Date"
+                            type="date"
+                            value={date}
+                            onChange={e => setDate(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            required
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setShowAdd(false)} color="secondary">Cancel</Button>
+                        <Button type="submit" variant="contained" disabled={loading}>Add</Button>
+                    </DialogActions>
+                </form>
+            </AnimatedDialog>
+            <TableContainer component={Paper} sx={{ mb: 7 }}>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Problem</TableCell>
+                            <TableCell>Service Location</TableCell>
+                            <TableCell>Amount (RM)</TableCell>
+                            <TableCell>Action</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
                         {records.length === 0 && (
-                            <tr>
-                                <td colSpan={5}>No records</td>
-                            </tr>
+                            <TableRow>
+                                <TableCell colSpan={5} align="center" sx={{ color: '#888', py: 3 }}>No records</TableCell>
+                            </TableRow>
                         )}
                         {records.map((r) => (
-                            <tr key={r.id}>
+                            <TableRow key={r.id}>
                                 {editId === r.id ? (
                                     <>
-                                        <td><input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} /></td>
-                                        <td><input type="text" value={editProblem} onChange={e => setEditProblem(e.target.value)} /></td>
-                                        <td><input type="text" value={editServiceAt} onChange={e => setEditServiceAt(e.target.value)} /></td>
-                                        <td><input type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} /></td>
-                                        <td>
-                                            <button onClick={() => handleEditSave(r.id)} disabled={loading}>Save</button>
-                                            <button className="secondary" onClick={() => setEditId(null)} disabled={loading}>Cancel</button>
-                                        </td>
+                                        <TableCell><TextField type="date" value={editDate} onChange={e => setEditDate(e.target.value)} size="small" InputLabelProps={{ shrink: true }} /></TableCell>
+                                        <TableCell><TextField value={editProblem} onChange={e => setEditProblem(e.target.value)} size="small" /></TableCell>
+                                        <TableCell><TextField value={editServiceAt} onChange={e => setEditServiceAt(e.target.value)} size="small" /></TableCell>
+                                        <TableCell><TextField type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} size="small" /></TableCell>
+                                        <TableCell>
+                                            <Button onClick={() => handleEditSave(r.id)} disabled={loading} size="small" variant="contained">Save</Button>
+                                            <Button onClick={() => setEditId(null)} disabled={loading} size="small" color="secondary">Cancel</Button>
+                                        </TableCell>
                                     </>
                                 ) : (
                                     <>
-                                        <td>{r.date}</td>
-                                        <td>{r.problem}</td>
-                                        <td>{r.service_at}</td>
-                                        <td>RM {Number(r.amount).toFixed(2)}</td>
-                                        <td>
-                                            <button className="secondary" onClick={() => handleEdit(r)}>Edit</button>
-                                            <button style={{ marginLeft: 4 }} onClick={() => handleDelete(r.id)} disabled={loading}>Delete</button>
-                                        </td>
+                                        <TableCell>{r.date}</TableCell>
+                                        <TableCell>{r.problem}</TableCell>
+                                        <TableCell>{r.service_at}</TableCell>
+                                        <TableCell>RM {Number(r.amount).toFixed(2)}</TableCell>
+                                        <TableCell>
+                                            <IconButton onClick={() => handleEdit(r)} size="small" color="primary"><EditIcon /></IconButton>
+                                            <IconButton onClick={() => handleDelete(r.id)} disabled={loading} size="small" color="error"><DeleteIcon /></IconButton>
+                                        </TableCell>
                                     </>
                                 )}
-                            </tr>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            {error && <Box color="error.main" mb={1}>{error}</Box>}
+            {loading && <CircularProgress size={32} sx={{ position: 'absolute', top: 16, right: 16 }} />}
+        </Box>
     );
 }

@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
 import AuthPage from './AuthPage';
 import { supabase } from './supabaseClient';
-import './App.css';
 import FuelRecords from './FuelRecords';
 import MaintenanceRecords from './MaintenanceRecords';
 import ProfilePage from './ProfilePage';
 import { NotificationProvider, useNotification } from './Notification';
 import BottomNav from './BottomNav';
-import './BottomNav.css';
+import FabSpeedDial from './FabSpeedDial';
+import Dashboard from './Dashboard';
+import './dashboard.css';
+import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line
 
 function AppContent() {
   const [session, setSession] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
+  const [showAddFuel, setShowAddFuel] = useState(false);
+  const [showAddMaintenance, setShowAddMaintenance] = useState(false);
   const notify = useNotification();
 
   useEffect(() => {
@@ -30,63 +34,106 @@ function AppContent() {
   }, [notify]);
 
   if (!session) {
-    return <AuthPage onAuth={() => {
-      supabase.auth.getSession().then(({ data }) => setSession(data.session));
-      notify('Login successful', 'success');
-    }} />;
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="auth"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          transition={{ duration: 0.35, ease: 'easeInOut' }}
+        >
+          <AuthPage onAuth={() => {
+            supabase.auth.getSession().then(({ data }) => setSession(data.session));
+            notify('Login successful', 'success');
+          }} />
+        </motion.div>
+      </AnimatePresence>
+    );
   }
 
   if (showProfile || activeTab === 'profile') {
     return (
-      <div className="app-bg">
-        <div className="app-container">
-          <div className="app-header">
-            <h1 className="app-title">Profile</h1>
-            <button className="secondary app-btn" onClick={() => { setShowProfile(false); setActiveTab('home'); }}>
-              Back
-            </button>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="profile"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          transition={{ duration: 0.35, ease: 'easeInOut' }}
+        >
+          <div className="app-bg">
+            <div className="app-container">
+              <ProfilePage />
+            </div>
+            <BottomNav
+              active="profile"
+              onNavigate={tab => {
+                setShowProfile(tab === 'profile');
+                setActiveTab(tab);
+              }}
+              onLogout={async () => {
+                await supabase.auth.signOut();
+                setSession(null);
+                notify('Logged out', 'success');
+              }}
+            />
           </div>
-          <ProfilePage />
-        </div>
-        <BottomNav
-          active="profile"
-          onNavigate={tab => {
-            setShowProfile(tab === 'profile');
-            setActiveTab(tab);
-          }}
-          onLogout={async () => {
-            await supabase.auth.signOut();
-            setSession(null);
-            notify('Logged out', 'success');
-          }}
-        />
-      </div>
+        </motion.div>
+      </AnimatePresence>
     );
   }
+
+  // Helper: show FAB only if fuel or maintenance tab is active
+  const showFab = activeTab === 'fuel' || activeTab === 'maintenance';
 
   return (
     <div className="app-bg">
       <div className="app-container">
-        <div className="app-header">
-          <h1 className="app-title">Car Maintenance & Fuel Tracker</h1>
-          <div className="app-btn-group">
-            <button className="app-btn" onClick={() => { setShowProfile(true); setActiveTab('profile'); }}>
-              Profile
-            </button>
-            <button className="secondary app-btn" onClick={async () => {
-              await supabase.auth.signOut();
-              setSession(null);
-              notify('Logged out', 'success');
-            }}>
-              Logout
-            </button>
-          </div>
-        </div>
         <div className="app-grid">
-          {(activeTab === 'home' || activeTab === 'fuel') && <FuelRecords />}
-          {(activeTab === 'home' || activeTab === 'maintenance') && <MaintenanceRecords />}
+          <AnimatePresence mode="wait">
+            {activeTab === 'home' && (
+              <motion.div
+                key="dashboard"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -40 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <Dashboard />
+              </motion.div>
+            )}
+            {activeTab === 'fuel' && (
+              <motion.div
+                key="fuel"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -40 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <FuelRecords showAdd={showAddFuel} setShowAdd={setShowAddFuel} />
+              </motion.div>
+            )}
+            {activeTab === 'maintenance' && (
+              <motion.div
+                key="maintenance"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -40 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <MaintenanceRecords showAdd={showAddMaintenance} setShowAdd={setShowAddMaintenance} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
+      {showFab && (
+        <FabSpeedDial
+          onAddFuel={() => setShowAddFuel(true)}
+          onAddMaintenance={() => setShowAddMaintenance(true)}
+        />
+      )}
       <BottomNav
         active={activeTab}
         onNavigate={tab => {

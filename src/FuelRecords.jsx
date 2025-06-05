@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import './App.css';
 import { useNotification } from './Notification';
+import { Box, Typography, Button, TextField, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, ToggleButtonGroup, ToggleButton, CircularProgress, IconButton } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
 
 const FILTERS = [
     { label: '1 Month', value: '1m' },
@@ -19,7 +24,31 @@ function getDateFilter(value) {
     return now.toISOString().slice(0, 10);
 }
 
-export default function FuelRecords() {
+function AnimatedDialog({ open, onClose, children, ...props }) {
+    return (
+        <AnimatePresence>
+            {open && (
+                <Dialog
+                    open={open}
+                    onClose={onClose}
+                    PaperProps={{
+                        component: motion.div,
+                        initial: { opacity: 0, y: 40, scale: 0.98 },
+                        animate: { opacity: 1, y: 0, scale: 1 },
+                        exit: { opacity: 0, y: -40, scale: 0.98 },
+                        transition: { duration: 0.28, ease: 'easeInOut' },
+                        style: { overflow: 'visible' },
+                    }}
+                    {...props}
+                >
+                    {children}
+                </Dialog>
+            )}
+        </AnimatePresence>
+    );
+}
+
+export default function FuelRecords({ showAdd, setShowAdd }) {
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState('');
     const [records, setRecords] = useState([]);
@@ -29,19 +58,26 @@ export default function FuelRecords() {
     const [editId, setEditId] = useState(null);
     const [editAmount, setEditAmount] = useState('');
     const [editDate, setEditDate] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalRows, setTotalRows] = useState(0);
+    const rowsPerPage = 10;
     const notify = useNotification();
 
     const fetchRecords = React.useCallback(async () => {
         setLoading(true);
         setError('');
-        let query = supabase.from('fuel_records').select('*').order('date', { ascending: false });
+        let query = supabase.from('fuel_records').select('*', { count: 'exact' }).order('date', { ascending: false });
         const fromDate = getDateFilter(filter);
         if (fromDate) query = query.gte('date', fromDate);
-        const { data, error } = await query;
+        query = query.range((page - 1) * rowsPerPage, page * rowsPerPage - 1);
+        const { data, error, count } = await query;
         if (error) setError(error.message);
-        else setRecords(data);
+        else {
+            setRecords(data);
+            setTotalRows(count || 0);
+        }
         setLoading(false);
-    }, [filter]);
+    }, [filter, page]);
 
     useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
@@ -111,89 +147,122 @@ export default function FuelRecords() {
     const total = records.reduce((sum, r) => sum + Number(r.amount), 0);
 
     return (
-        <div style={{ maxWidth: '36rem', margin: '0 auto', padding: '1rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Fuel Records</h2>
-            <form onSubmit={handleAdd} className="form-grid">
-                <input
-                    type="number"
-                    step="0.01"
-                    placeholder="Amount (RM)"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    required
-                />
-                <input
-                    type="date"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                    required
-                />
-                <button style={{ gridColumn: '1 / -1' }} disabled={loading}>
-                    Add
-                </button>
-            </form>
-            <div style={{ marginBottom: '0.5em', display: 'flex', gap: '0.5em' }}>
-                {FILTERS.map(f => (
-                    <button
-                        key={f.value}
-                        className={filter === f.value ? '' : 'secondary'}
-                        style={{ fontWeight: filter === f.value ? 'bold' : 'normal' }}
-                        onClick={() => setFilter(f.value)}
-                        type="button"
-                    >
-                        {f.label}
-                    </button>
-                ))}
-            </div>
-            <div style={{ marginBottom: '0.5em', textAlign: 'right', fontWeight: 600 }}>
+        <Box maxWidth={600} mx="auto" my={2} position="relative">
+            <Typography variant="h5" fontWeight={700} mb={2}>Fuel Records</Typography>
+            <AnimatedDialog open={showAdd} onClose={() => setShowAdd(false)}>
+                <DialogTitle>Add Fuel Record</DialogTitle>
+                <form onSubmit={handleAdd}>
+                    <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                            label="Amount (RM)"
+                            type="number"
+                            inputProps={{ step: '0.01' }}
+                            value={amount}
+                            onChange={e => setAmount(e.target.value)}
+                            required
+                            autoFocus
+                        />
+                        <TextField
+                            label="Date"
+                            type="date"
+                            value={date}
+                            onChange={e => setDate(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            required
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setShowAdd(false)} color="secondary">Cancel</Button>
+                        <Button type="submit" variant="contained" disabled={loading}>Add</Button>
+                    </DialogActions>
+                </form>
+            </AnimatedDialog>
+            <Box mb={2}>
+                <ToggleButtonGroup
+                    value={filter}
+                    exclusive
+                    onChange={(_, v) => v && setFilter(v)}
+                    size="small"
+                >
+                    {FILTERS.map(f => (
+                        <ToggleButton key={f.value} value={f.value}>{f.label}</ToggleButton>
+                    ))}
+                </ToggleButtonGroup>
+            </Box>
+            <Box mb={1} textAlign="right" fontWeight={600}>
                 Total: RM {total.toFixed(2)}
-            </div>
-            {error && <div style={{ color: '#e11d48', marginBottom: '0.5em' }}>{error}</div>}
-            <div className="table-container">
-                <table className="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Amount (RM)</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            </Box>
+            {error && <Box color="error.main" mb={1}>{error}</Box>}
+            <TableContainer component={Paper} sx={{ mb: 7 }}>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Amount (RM)</TableCell>
+                            <TableCell>Action</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
                         {records.length === 0 && (
-                            <tr>
-                                <td colSpan={3} style={{ textAlign: 'center', color: '#888', padding: '1em' }}>No records</td>
-                            </tr>
+                            <TableRow>
+                                <TableCell colSpan={3} align="center" sx={{ color: '#888', py: 3 }}>No records</TableCell>
+                            </TableRow>
                         )}
                         {records.map(r => (
-                            <tr key={r.id}>
+                            <TableRow key={r.id}>
                                 {editId === r.id ? (
                                     <>
-                                        <td>
-                                            <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} />
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} />
-                                        </td>
-                                        <td>
-                                            <button onClick={() => handleEditSave(r.id)} disabled={loading}>Save</button>
-                                            <button className="secondary" onClick={() => setEditId(null)} disabled={loading}>Cancel</button>
-                                        </td>
+                                        <TableCell>
+                                            <TextField type="date" value={editDate} onChange={e => setEditDate(e.target.value)} size="small" InputLabelProps={{ shrink: true }} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <TextField type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} size="small" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button onClick={() => handleEditSave(r.id)} disabled={loading} size="small" variant="contained">Save</Button>
+                                            <Button onClick={() => setEditId(null)} disabled={loading} size="small" color="secondary">Cancel</Button>
+                                        </TableCell>
                                     </>
                                 ) : (
                                     <>
-                                        <td>{r.date}</td>
-                                        <td>RM {Number(r.amount).toFixed(2)}</td>
-                                        <td>
-                                            <button className="secondary" onClick={() => handleEdit(r)}>Edit</button>
-                                            <button style={{ marginLeft: 4 }} onClick={() => handleDelete(r.id)} disabled={loading}>Delete</button>
-                                        </td>
+                                        <TableCell>{r.date}</TableCell>
+                                        <TableCell>RM {Number(r.amount).toFixed(2)}</TableCell>
+                                        <TableCell>
+                                            <IconButton onClick={() => handleEdit(r)} size="small" color="primary"><EditIcon /></IconButton>
+                                            <IconButton onClick={() => handleDelete(r.id)} disabled={loading} size="small" color="error"><DeleteIcon /></IconButton>
+                                        </TableCell>
                                     </>
                                 )}
-                            </tr>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            {/* Pagination controls */}
+            {totalRows > rowsPerPage && (
+                <Box display="flex" justifyContent="center" alignItems="center" mb={2} gap={2}>
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                    >
+                        Previous
+                    </Button>
+                    <Typography variant="body2">
+                        Page {page} of {Math.ceil(totalRows / rowsPerPage)}
+                    </Typography>
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setPage(p => p + 1)}
+                        disabled={page >= Math.ceil(totalRows / rowsPerPage)}
+                    >
+                        Next
+                    </Button>
+                </Box>
+            )}
+            {loading && <CircularProgress size={32} sx={{ position: 'absolute', top: 16, right: 16 }} />}
+        </Box>
     );
 }

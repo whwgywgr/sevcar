@@ -1,0 +1,53 @@
+/* Modern dashboard layout styles */
+.app-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+    transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 8px 80px 8px;
+    transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-grid {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 600px) {
+    .app-grid {
+        gap: 32px;
+    }
+}
+
+@media (min-width: 900px) {
+    .app-container {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+/* Card and button hover/active transitions for smoother UI */
+.MuiCard-root,
+.MuiButton-root,
+.MuiToggleButton-root {
+    transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.MuiCard-root:hover {
+    box-shadow: 0 4px 24px 0 rgba(37, 99, 235, 0.08);
+}
+
+.MuiButton-root:active,
+.MuiToggleButton-root:active {
+    transform: scale(0.97);
+    transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+}

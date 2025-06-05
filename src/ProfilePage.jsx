@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import './ProfilePage.css';
+import { Box, Card, CardContent, Typography, Avatar, TextField, Button, CircularProgress, Alert } from '@mui/material';
 
 export default function ProfilePage() {
     const [user, setUser] = useState(null);
@@ -41,48 +41,48 @@ export default function ProfilePage() {
         else setResetEmailSent(true);
     };
 
-    if (!user) return <div className="profile-loading">Loading...</div>;
+    if (!user) return <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh"><CircularProgress /></Box>;
 
     // Helper for avatar
     const getInitial = (email) => email ? email[0].toUpperCase() : '?';
 
     return (
-        <div className="profile-bg">
-            <div className="profile-card">
-                <div className="profile-avatar-section">
-                    <div className="profile-avatar">{getInitial(user.email)}</div>
-                    <h2 className="profile-title">Profile</h2>
-                    <div className="profile-email">{user.email}</div>
-                </div>
-                <div className="profile-section">
-                    <form onSubmit={handleChangePassword} className="profile-form">
-                        <div className="profile-label">Change Password</div>
-                        <input
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+            <Card sx={{ maxWidth: 400, width: '100%', p: 3 }}>
+                <CardContent>
+                    <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
+                        <Avatar sx={{ bgcolor: 'primary.main', width: 80, height: 80, fontSize: 36, mb: 1 }}>{getInitial(user.email)}</Avatar>
+                        <Typography variant="h6" fontWeight={700}>Profile</Typography>
+                        <Typography color="text.secondary">{user.email}</Typography>
+                    </Box>
+                    <Box component="form" onSubmit={handleChangePassword} mb={2} display="flex" flexDirection="column" gap={2}>
+                        <Typography fontWeight={600}>Change Password</Typography>
+                        <TextField
                             type="password"
-                            className="profile-input"
-                            placeholder="New Password"
+                            label="New Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
                             required
                         />
-                        <button className="profile-btn profile-btn-blue" disabled={loading}>
+                        <Button type="submit" variant="contained" disabled={loading}>
                             {loading ? 'Changing...' : 'Change Password'}
-                        </button>
-                    </form>
-                    <div>
-                        <div className="profile-label">Reset Password</div>
-                        <button
-                            className="profile-btn profile-btn-yellow"
+                        </Button>
+                    </Box>
+                    <Box mb={2}>
+                        <Typography fontWeight={600}>Reset Password</Typography>
+                        <Button
+                            variant="contained"
+                            color="warning"
                             onClick={handleResetPassword}
                             disabled={loading || resetEmailSent}
                         >
                             {resetEmailSent ? 'Reset Email Sent' : 'Send Password Reset Email'}
-                        </button>
-                    </div>
-                    {error && <div className="profile-error">{error}</div>}
-                    {success && <div className="profile-success">{success}</div>}
-                </div>
-            </div>
-        </div>
+                        </Button>
+                    </Box>
+                    {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
+                    {success && <Alert severity="success" sx={{ mb: 1 }}>{success}</Alert>}
+                </CardContent>
+            </Card>
+        </Box>
     );
 }
