@@ -21,6 +21,9 @@ function getDateFilter(value) {
     return now.toISOString().slice(0, 10);
 }
 
+// Simple in-memory cache for dashboard data
+const dashboardCache = {};
+
 export default function Dashboard() {
     const [fuelFilter, setFuelFilter] = useState('1m');
     const [fuelTotal, setFuelTotal] = useState(null);
@@ -33,12 +36,22 @@ export default function Dashboard() {
         async function fetchFuelTotal() {
             setFuelLoading(true);
             const user = (await supabase.auth.getUser()).data.user;
+            const cacheKey = `fuel-${fuelFilter}-${user.id}`;
+            if (dashboardCache[cacheKey]) {
+                setFuelTotal(dashboardCache[cacheKey]);
+                setFuelLoading(false);
+                return;
+            }
             let query = supabase.from('fuel_records').select('amount').eq('user_id', user.id);
             const fromDate = getDateFilter(fuelFilter);
             if (fromDate) query = query.gte('date', fromDate);
             const { data, error } = await query;
             if (error) setFuelTotal('Error');
-            else setFuelTotal(data.reduce((sum, r) => sum + Number(r.amount), 0));
+            else {
+                const total = data.reduce((sum, r) => sum + Number(r.amount), 0);
+                setFuelTotal(total);
+                dashboardCache[cacheKey] = total;
+            }
             setFuelLoading(false);
         }
         fetchFuelTotal();
@@ -48,6 +61,14 @@ export default function Dashboard() {
         async function fetchMaintenanceTotals() {
             setMaintenanceLoading(true);
             const user = (await supabase.auth.getUser()).data.user;
+            const cacheKeyYear = `maint-year-${user.id}`;
+            const cacheKeyAll = `maint-all-${user.id}`;
+            if (dashboardCache[cacheKeyYear] && dashboardCache[cacheKeyAll]) {
+                setMaintenanceTotalYear(dashboardCache[cacheKeyYear]);
+                setMaintenanceTotalAll(dashboardCache[cacheKeyAll]);
+                setMaintenanceLoading(false);
+                return;
+            }
             // 1 year
             const fromYear = new Date();
             fromYear.setFullYear(fromYear.getFullYear() - 1);
@@ -58,14 +79,22 @@ export default function Dashboard() {
                 .eq('user_id', user.id)
                 .gte('date', fromYearStr);
             if (yearError) setMaintenanceTotalYear('Error');
-            else setMaintenanceTotalYear(yearData.reduce((sum, r) => sum + Number(r.amount), 0));
+            else {
+                const totalYear = yearData.reduce((sum, r) => sum + Number(r.amount), 0);
+                setMaintenanceTotalYear(totalYear);
+                dashboardCache[cacheKeyYear] = totalYear;
+            }
             // all time
             const { data: allData, error: allError } = await supabase
                 .from('maintenance_records')
                 .select('amount')
                 .eq('user_id', user.id);
             if (allError) setMaintenanceTotalAll('Error');
-            else setMaintenanceTotalAll(allData.reduce((sum, r) => sum + Number(r.amount), 0));
+            else {
+                const totalAll = allData.reduce((sum, r) => sum + Number(r.amount), 0);
+                setMaintenanceTotalAll(totalAll);
+                dashboardCache[cacheKeyAll] = totalAll;
+            }
             setMaintenanceLoading(false);
         }
         fetchMaintenanceTotals();

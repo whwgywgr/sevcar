@@ -33,6 +33,9 @@ function AnimatedDialog({ open, onClose, children, ...props }) {
     );
 }
 
+// Simple in-memory cache for fetched records
+const cache = {};
+
 export default function MaintenanceRecords({ showAdd, setShowAdd }) {
     const [problem, setProblem] = useState('');
     const [serviceAt, setServiceAt] = useState('');
@@ -51,12 +54,21 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
     const fetchRecords = async () => {
         setLoading(true);
         setError('');
+        const cacheKey = 'maintenance';
+        if (cache[cacheKey]) {
+            setRecords(cache[cacheKey]);
+            setLoading(false);
+            return;
+        }
         const { data, error } = await supabase
             .from('maintenance_records')
             .select('*')
             .order('date', { ascending: false });
         if (error) setError(error.message);
-        else setRecords(data);
+        else {
+            setRecords(data);
+            cache[cacheKey] = data;
+        }
         setLoading(false);
     };
 
@@ -85,6 +97,8 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
         setAmount('');
         setDate('');
         fetchRecords();
+        // Invalidate cache after add
+        delete cache['maintenance'];
         setLoading(false);
     };
 
@@ -117,6 +131,8 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
         setEditAmount('');
         setEditDate('');
         fetchRecords();
+        // Invalidate cache after edit
+        delete cache['maintenance'];
         setLoading(false);
     };
 
@@ -132,6 +148,8 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
             notify('Maintenance record deleted', 'success');
         }
         fetchRecords();
+        // Invalidate cache after delete
+        delete cache['maintenance'];
         setLoading(false);
     };
 

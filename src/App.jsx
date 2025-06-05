@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import AuthPage from './AuthPage';
 import { supabase } from './supabaseClient';
-import FuelRecords from './FuelRecords';
-import MaintenanceRecords from './MaintenanceRecords';
-import ProfilePage from './ProfilePage';
 import { NotificationProvider, useNotification } from './Notification';
 import BottomNav from './BottomNav';
 import FabSpeedDial from './FabSpeedDial';
-import Dashboard from './Dashboard';
 import './dashboard.css';
 import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line
+
+// Lazy load heavy pages
+const LazyFuelRecords = lazy(() => import('./FuelRecords'));
+const LazyMaintenanceRecords = lazy(() => import('./MaintenanceRecords'));
+const LazyProfilePage = lazy(() => import('./ProfilePage'));
+const LazyDashboard = lazy(() => import('./Dashboard'));
 
 function AppContent() {
   const [session, setSession] = useState(null);
@@ -64,7 +66,9 @@ function AppContent() {
         >
           <div className="app-bg">
             <div className="app-container">
-              <ProfilePage />
+              <Suspense fallback={<div style={{ textAlign: 'center', marginTop: 40 }}>Loading...</div>}>
+                <LazyProfilePage />
+              </Suspense>
             </div>
             <BottomNav
               active="profile"
@@ -100,7 +104,9 @@ function AppContent() {
                 exit={{ opacity: 0, y: -40 }}
                 transition={{ duration: 0.35, ease: 'easeInOut' }}
               >
-                <Dashboard />
+                <Suspense fallback={<div style={{ textAlign: 'center', marginTop: 40 }}>Loading...</div>}>
+                  <LazyDashboard />
+                </Suspense>
               </motion.div>
             )}
             {activeTab === 'fuel' && (
@@ -111,7 +117,9 @@ function AppContent() {
                 exit={{ opacity: 0, y: -40 }}
                 transition={{ duration: 0.35, ease: 'easeInOut' }}
               >
-                <FuelRecords showAdd={showAddFuel} setShowAdd={setShowAddFuel} />
+                <Suspense fallback={<div style={{ textAlign: 'center', marginTop: 40 }}>Loading...</div>}>
+                  <LazyFuelRecords showAdd={showAddFuel} setShowAdd={setShowAddFuel} />
+                </Suspense>
               </motion.div>
             )}
             {activeTab === 'maintenance' && (
@@ -122,7 +130,9 @@ function AppContent() {
                 exit={{ opacity: 0, y: -40 }}
                 transition={{ duration: 0.35, ease: 'easeInOut' }}
               >
-                <MaintenanceRecords showAdd={showAddMaintenance} setShowAdd={setShowAddMaintenance} />
+                <Suspense fallback={<div style={{ textAlign: 'center', marginTop: 40 }}>Loading...</div>}>
+                  <LazyMaintenanceRecords showAdd={showAddMaintenance} setShowAdd={setShowAddMaintenance} />
+                </Suspense>
               </motion.div>
             )}
           </AnimatePresence>

@@ -48,6 +48,9 @@ function AnimatedDialog({ open, onClose, children, ...props }) {
     );
 }
 
+// Simple in-memory cache for fetched records
+const cache = {};
+
 export default function FuelRecords({ showAdd, setShowAdd }) {
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState('');
@@ -66,6 +69,13 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
     const fetchRecords = React.useCallback(async () => {
         setLoading(true);
         setError('');
+        const cacheKey = `${filter}-${page}`;
+        if (cache[cacheKey]) {
+            setRecords(cache[cacheKey].data);
+            setTotalRows(cache[cacheKey].count);
+            setLoading(false);
+            return;
+        }
         let query = supabase.from('fuel_records').select('*', { count: 'exact' }).order('date', { ascending: false });
         const fromDate = getDateFilter(filter);
         if (fromDate) query = query.gte('date', fromDate);
@@ -75,6 +85,7 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
         else {
             setRecords(data);
             setTotalRows(count || 0);
+            cache[cacheKey] = { data, count };
         }
         setLoading(false);
     }, [filter, page]);
@@ -100,6 +111,8 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
         setAmount('');
         setDate('');
         fetchRecords();
+        // Invalidate cache after add
+        Object.keys(cache).forEach(k => { if (k.startsWith(filter)) delete cache[k]; });
         setLoading(false);
     };
 
@@ -126,6 +139,8 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
         setEditAmount('');
         setEditDate('');
         fetchRecords();
+        // Invalidate cache after edit
+        Object.keys(cache).forEach(k => { if (k.startsWith(filter)) delete cache[k]; });
         setLoading(false);
     };
 
@@ -141,6 +156,8 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
             notify('Fuel record deleted', 'success');
         }
         fetchRecords();
+        // Invalidate cache after delete
+        Object.keys(cache).forEach(k => { if (k.startsWith(filter)) delete cache[k]; });
         setLoading(false);
     };
 

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Box, Card, CardContent, Typography, Avatar, TextField, Button, CircularProgress, Alert } from '@mui/material';
 
+// Simple in-memory cache for profile data
+const profileCache = {};
+
 export default function ProfilePage() {
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
@@ -11,9 +14,17 @@ export default function ProfilePage() {
     const [resetEmailSent, setResetEmailSent] = useState(false);
 
     useEffect(() => {
+        const cacheKey = 'profile';
+        if (profileCache[cacheKey]) {
+            setUser(profileCache[cacheKey]);
+            return;
+        }
         supabase.auth.getUser().then(({ data, error }) => {
             if (error) setError(error.message);
-            else setUser(data.user);
+            else {
+                setUser(data.user);
+                profileCache[cacheKey] = data.user;
+            }
         });
     }, []);
 
@@ -27,6 +38,8 @@ export default function ProfilePage() {
         if (error) setError(error.message);
         else setSuccess('Password updated successfully.');
         setPassword('');
+        // Invalidate cache after password change
+        delete profileCache['profile'];
     };
 
     const handleResetPassword = async () => {
@@ -39,6 +52,8 @@ export default function ProfilePage() {
         setLoading(false);
         if (error) setError(error.message);
         else setResetEmailSent(true);
+        // Invalidate cache after reset
+        delete profileCache['profile'];
     };
 
     if (!user) return <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh"><CircularProgress /></Box>;
