@@ -1,4 +1,5 @@
 // Floating Action Button with Speed Dial for Add Fuel or Maintenance
+// (Removed from app)
 import React from 'react';
 import { SpeedDial, SpeedDialAction, SpeedDialIcon } from '@mui/material';
 import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';

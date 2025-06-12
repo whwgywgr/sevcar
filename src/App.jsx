@@ -115,10 +115,10 @@ function AppContent() {
         </div>
       </div>
       {/* Always show the FAB on all main pages */}
-      <FabSpeedDial
+      {/* <FabSpeedDial
         onAddFuel={() => setShowAddFuel(true)}
         onAddMaintenance={() => setShowAddMaintenance(true)}
-      />
+      /> */}
       <BottomNav
         active={activeTab}
         onNavigate={tab => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { useNotification } from './useNotification';
-import { Box, Typography, Button, TextField, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, ToggleButtonGroup, ToggleButton, CircularProgress, IconButton, Stack, Dialog } from '@mui/material';
+import { Box, Typography, Button, TextField, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, IconButton, Stack, Dialog } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -9,22 +9,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import Fab from './Fab';
 import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
-
-const FILTERS = [
-    { label: '1 Month', value: '1m' },
-    { label: '3 Months', value: '3m' },
-    { label: '1 Year', value: '1y' },
-    { label: 'All Time', value: 'all' },
-];
-
-function getDateFilter(value) {
-    const now = new Date();
-    if (value === '1m') now.setMonth(now.getMonth() - 1);
-    else if (value === '3m') now.setMonth(now.getMonth() - 3);
-    else if (value === '1y') now.setFullYear(now.getFullYear() - 1);
-    else return null;
-    return now.toISOString().slice(0, 10);
-}
 
 function AnimatedDialog({ open, onClose, children, ...props }) {
     return (
@@ -57,7 +41,6 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState('');
     const [records, setRecords] = useState([]);
-    const [filter, setFilter] = useState('1m');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [editId, setEditId] = useState(null);
@@ -72,7 +55,7 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
         setLoading(true);
         setError('');
         const user = (await supabase.auth.getUser()).data.user;
-        const cacheKey = `${user.id}-${filter}-${page}`;
+        const cacheKey = `${user.id}-all-${page}`; // filter removed from key
         if (cache[cacheKey]) {
             setRecords(cache[cacheKey].data);
             setTotalRows(cache[cacheKey].count);
@@ -80,8 +63,7 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
             return;
         }
         let query = supabase.from('fuel_records').select('*', { count: 'exact' }).order('date', { ascending: false });
-        const fromDate = getDateFilter(filter);
-        if (fromDate) query = query.gte('date', fromDate);
+        // No date filter
         query = query.range((page - 1) * rowsPerPage, page * rowsPerPage - 1);
         const { data, error, count } = await query;
         if (error) setError(error.message);
@@ -91,7 +73,7 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
             cache[cacheKey] = { data, count };
         }
         setLoading(false);
-    }, [filter, page]);
+    }, [page]); // filter removed from deps
 
     useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
@@ -102,17 +84,16 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'fuel_records' },
                 () => {
-                    // Only refetch if the event is relevant to the current filter
                     fetchRecords();
-                    // Invalidate cache for current filter
-                    Object.keys(cache).forEach(k => { if (k.startsWith(filter)) delete cache[k]; });
+                    // Invalidate cache for current user
+                    Object.keys(cache).forEach(k => { if (k.startsWith('')) delete cache[k]; });
                 }
             )
             .subscribe();
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [filter, page, fetchRecords]);
+    }, [page, fetchRecords]); // filter removed from deps
 
     const handleAdd = async (e) => {
         e.preventDefault();
@@ -142,7 +123,7 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
             setDate('');
             fetchRecords();
             // Invalidate cache after add
-            Object.keys(cache).forEach(k => { if (k.startsWith(user.id + '-' + filter)) delete cache[k]; });
+            Object.keys(cache).forEach(k => { if (k.startsWith(user.id + '-all')) delete cache[k]; });
         } catch (err) {
             setError('Unexpected error: ' + err.message);
             notify('Unexpected error: ' + err.message, 'error');
@@ -175,7 +156,7 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
         setEditDate('');
         fetchRecords();
         // Invalidate cache after edit
-        Object.keys(cache).forEach(k => { if (k.startsWith(user.id + '-' + filter)) delete cache[k]; });
+        Object.keys(cache).forEach(k => { if (k.startsWith(user.id + '-all')) delete cache[k]; });
         setLoading(false);
     };
 
@@ -193,7 +174,7 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
         }
         fetchRecords();
         // Invalidate cache after delete
-        Object.keys(cache).forEach(k => { if (k.startsWith(user.id + '-' + filter)) delete cache[k]; });
+        Object.keys(cache).forEach(k => { if (k.startsWith(user.id + '-all')) delete cache[k]; });
         setLoading(false);
     };
 
@@ -201,6 +182,16 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
 
     return (
         <Box maxWidth={600} mx="auto" my={2} position="relative">
+            {/* Full width Total Card */}
+            <Paper elevation={3} sx={{ mb: 2, p: 3, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <Box display="flex" alignItems="center" justifyContent="center" width="100%" gap={2}>
+                    <LocalGasStationIcon sx={{ color: 'primary.main', fontSize: 40 }} />
+                    <Box textAlign="left">
+                        <Typography variant="h6" fontWeight={700}>Total Spent</Typography>
+                        <Typography variant="h4" fontWeight={900} color="primary">RM {total.toFixed(2)}</Typography>
+                    </Box>
+                </Box>
+            </Paper>
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                 <Typography variant="h5" fontWeight={700}>
                     <LocalGasStationIcon sx={{ mr: 1, color: 'primary.main', verticalAlign: 'middle' }} />
@@ -249,42 +240,22 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
                     </DialogActions>
                 </form>
             </AnimatedDialog>
-            <Box mb={2} display="flex" flexDirection={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'center' }} gap={2}>
-                <ToggleButtonGroup
-                    value={filter}
-                    exclusive
-                    onChange={(_, v) => v && setFilter(v)}
-                    size="small"
-                    className="fuel-filter-group"
-                    sx={{ flexWrap: 'wrap' }}
-                >
-                    {FILTERS.map(f => (
-                        <ToggleButton key={f.value} value={f.value}>{f.label}</ToggleButton>
-                    ))}
-                </ToggleButtonGroup>
-                <Box flex={1} textAlign={{ xs: 'left', sm: 'right' }} fontWeight={600}>
-                    <Paper elevation={2} sx={{ display: 'inline-flex', alignItems: 'center', px: 2, py: 0.5, bgcolor: 'background.paper', borderRadius: 99 }}>
-                        <LocalGasStationIcon sx={{ mr: 1, color: 'primary.main', fontSize: 22 }} />
-                        <Typography variant="body1" fontWeight={700}>
-                            Total: RM {total.toFixed(2)}
-                        </Typography>
-                    </Paper>
-                </Box>
-            </Box>
-            {error && <Box color="error.main" mb={1}>{error}</Box>}
             <Box sx={{ overflowX: 'auto', mb: 2 }}>
                 <Table size="small" sx={{
                     minWidth: 180,
                     borderCollapse: 'separate',
                     borderSpacing: 0,
+                    tableLayout: 'fixed',
+                    width: '100%',
                     '& th, & td': {
-                        fontSize: '0.85rem',
+                        fontSize: '0.95rem',
                         px: 1,
-                        py: 0.5,
+                        py: 1,
                         borderBottom: '1px solid #333',
                         whiteSpace: 'nowrap',
                         color: '#e0e0e0',
                         background: '#181a1b',
+                        textAlign: 'center',
                     },
                     '& th': {
                         fontWeight: 700,
@@ -299,9 +270,9 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
                 }}>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Amount (RM)</TableCell>
-                            <TableCell>Action</TableCell>
+                            <TableCell sx={{ width: '40%' }}>Date</TableCell>
+                            <TableCell sx={{ width: '40%' }}>Amount (RM)</TableCell>
+                            <TableCell sx={{ width: '20%' }}>Action</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
