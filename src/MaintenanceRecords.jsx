@@ -1,37 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { useNotification } from './Notification';
-import { Box, Typography, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, IconButton } from '@mui/material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNotification } from './useNotification';
+import { Box, Typography, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, IconButton, Stack } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
-
-// AnimatedDialog for smooth dialog transitions
-function AnimatedDialog({ open, onClose, children, ...props }) {
-    return (
-        <AnimatePresence>
-            {open && (
-                <Dialog
-                    open={open}
-                    onClose={onClose}
-                    PaperProps={{
-                        component: motion.div,
-                        initial: { opacity: 0, y: 40, scale: 0.98 },
-                        animate: { opacity: 1, y: 0, scale: 1 },
-                        exit: { opacity: 0, y: -40, scale: 0.98 },
-                        transition: { duration: 0.28, ease: 'easeInOut' },
-                        style: { overflow: 'visible' },
-                    }}
-                    {...props}
-                >
-                    {children}
-                </Dialog>
-            )}
-        </AnimatePresence>
-    );
-}
 
 // Simple in-memory cache for fetched records
 const cache = {};
@@ -54,7 +28,8 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
     const fetchRecords = async () => {
         setLoading(true);
         setError('');
-        const cacheKey = 'maintenance';
+        const user = (await supabase.auth.getUser()).data.user;
+        const cacheKey = `${user.id}-maintenance`;
         if (cache[cacheKey]) {
             setRecords(cache[cacheKey]);
             setLoading(false);
@@ -63,6 +38,7 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
         const { data, error } = await supabase
             .from('maintenance_records')
             .select('*')
+            .eq('user_id', user.id)
             .order('date', { ascending: false });
         if (error) setError(error.message);
         else {
@@ -98,7 +74,7 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
         setDate('');
         fetchRecords();
         // Invalidate cache after add
-        delete cache['maintenance'];
+        delete cache[`${user.id}-maintenance`];
         setLoading(false);
     };
 
@@ -113,6 +89,7 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
     const handleEditSave = async (id) => {
         setLoading(true);
         setError('');
+        const user = (await supabase.auth.getUser()).data.user;
         const { error } = await supabase.from('maintenance_records').update({
             problem: editProblem,
             service_at: editServiceAt,
@@ -132,7 +109,7 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
         setEditDate('');
         fetchRecords();
         // Invalidate cache after edit
-        delete cache['maintenance'];
+        delete cache[`${user.id}-maintenance`];
         setLoading(false);
     };
 
@@ -140,6 +117,7 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
         if (!window.confirm('Delete this record?')) return;
         setLoading(true);
         setError('');
+        const user = (await supabase.auth.getUser()).data.user;
         const { error } = await supabase.from('maintenance_records').delete().eq('id', id);
         if (error) {
             setError(error.message);
@@ -149,14 +127,24 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
         }
         fetchRecords();
         // Invalidate cache after delete
-        delete cache['maintenance'];
+        delete cache[`${user.id}-maintenance`];
         setLoading(false);
     };
 
     return (
-        <Box maxWidth={600} mx="auto" my={2} position="relative">
-            <Typography variant="h5" fontWeight={700} mb={2}>Maintenance Records</Typography>
-            <AnimatedDialog open={showAdd} onClose={() => setShowAdd(false)}>
+        <Box maxWidth={600} mx="auto" my={4} position="relative">
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                <Typography variant="h5" fontWeight={700}>Maintenance Records</Typography>
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setShowAdd(true)}
+                    sx={{ borderRadius: 2 }}
+                >
+                    Add
+                </Button>
+            </Box>
+            <Dialog open={showAdd} onClose={() => setShowAdd(false)}>
                 <DialogTitle>Add Maintenance Record</DialogTitle>
                 <form onSubmit={handleAdd}>
                     <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -191,50 +179,94 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
                         />
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => setShowAdd(false)} color="secondary">Cancel</Button>
-                        <Button type="submit" variant="contained" disabled={loading}>Add</Button>
+                        <Stack spacing={2} direction="row">
+                            <Button onClick={() => setShowAdd(false)} color="secondary" variant="text">Cancel</Button>
+                            <Button type="submit" variant="contained" disabled={loading}>Add</Button>
+                        </Stack>
                     </DialogActions>
                 </form>
-            </AnimatedDialog>
-            <TableContainer component={Paper} sx={{ mb: 7 }}>
-                <Table size="small">
+            </Dialog>
+            <Box sx={{ overflowX: 'auto', mb: 4 }}>
+                <Table size="small" sx={{
+                    width: 'auto',
+                    tableLayout: 'auto',
+                    borderCollapse: 'separate',
+                    borderSpacing: 0,
+                    '& th, & td': {
+                        fontSize: '0.85rem',
+                        px: 1,
+                        py: 0.5,
+                        borderBottom: '1px solid #333',
+                        color: '#e0e0e0',
+                        background: '#181a1b',
+                        whiteSpace: 'nowrap',
+                        maxWidth: 'none',
+                    },
+                    '& th': {
+                        fontWeight: 700,
+                        background: '#23272a',
+                        color: '#fff',
+                        borderBottom: '2px solid #444',
+                    },
+                    '& td': {
+                        color: '#e0e0e0',
+                        background: '#181a1b',
+                    },
+                }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Date</TableCell>
-                            <TableCell>Problem</TableCell>
-                            <TableCell>Service Location</TableCell>
+                            <TableCell>Noted</TableCell>
                             <TableCell>Amount (RM)</TableCell>
-                            <TableCell>Action</TableCell>
+                            <TableCell align="center">Action</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {records.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5} align="center" sx={{ color: '#888', py: 3 }}>No records</TableCell>
+                                <TableCell colSpan={4} align="center" sx={{ color: '#888', py: 2, fontSize: '0.85rem', background: '#181a1b' }}>No records</TableCell>
                             </TableRow>
                         )}
                         {records.map((r) => (
-                            <TableRow key={r.id}>
+                            <TableRow
+                                key={r.id}
+                                hover
+                                sx={{
+                                    '&:hover': { background: '#23272a' },
+                                    '&:last-child td': { borderBottom: 0 },
+                                    height: 36,
+                                }}
+                            >
                                 {editId === r.id ? (
                                     <>
-                                        <TableCell><TextField type="date" value={editDate} onChange={e => setEditDate(e.target.value)} size="small" InputLabelProps={{ shrink: true }} /></TableCell>
-                                        <TableCell><TextField value={editProblem} onChange={e => setEditProblem(e.target.value)} size="small" /></TableCell>
-                                        <TableCell><TextField value={editServiceAt} onChange={e => setEditServiceAt(e.target.value)} size="small" /></TableCell>
-                                        <TableCell><TextField type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} size="small" /></TableCell>
-                                        <TableCell>
-                                            <Button onClick={() => handleEditSave(r.id)} disabled={loading} size="small" variant="contained">Save</Button>
-                                            <Button onClick={() => setEditId(null)} disabled={loading} size="small" color="secondary">Cancel</Button>
+                                        <TableCell sx={{ minWidth: 90 }}><TextField type="date" value={editDate} onChange={e => setEditDate(e.target.value)} size="small" InputLabelProps={{ shrink: true }} inputProps={{ style: { fontSize: '0.85rem', padding: 2, color: '#e0e0e0', background: '#23272a' } }} /></TableCell>
+                                        <TableCell sx={{ minWidth: 180 }}>
+                                            <Stack spacing={0.5}>
+                                                <TextField value={editProblem} onChange={e => setEditProblem(e.target.value)} size="small" label="Problem" inputProps={{ style: { fontSize: '0.85rem', padding: 2, color: '#e0e0e0', background: '#23272a' } }} sx={{ mb: 0.5 }} />
+                                                <TextField value={editServiceAt} onChange={e => setEditServiceAt(e.target.value)} size="small" label="Service Location" inputProps={{ style: { fontSize: '0.85rem', padding: 2, color: '#e0e0e0', background: '#23272a' } }} />
+                                            </Stack>
+                                        </TableCell>
+                                        <TableCell sx={{ minWidth: 70 }}><TextField type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} size="small" inputProps={{ style: { fontSize: '0.85rem', padding: 2, color: '#e0e0e0', background: '#23272a' } }} /></TableCell>
+                                        <TableCell align="center" sx={{ minWidth: 90 }}>
+                                            <Stack direction="row" spacing={0.5} justifyContent="center">
+                                                <Button onClick={() => handleEditSave(r.id)} disabled={loading} size="small" variant="contained" sx={{ minWidth: 0, px: 1, fontSize: '0.8rem' }}>Save</Button>
+                                                <Button onClick={() => setEditId(null)} disabled={loading} size="small" color="secondary" variant="text" sx={{ minWidth: 0, px: 1, fontSize: '0.8rem' }}>Cancel</Button>
+                                            </Stack>
                                         </TableCell>
                                     </>
                                 ) : (
                                     <>
-                                        <TableCell>{r.date}</TableCell>
-                                        <TableCell>{r.problem}</TableCell>
-                                        <TableCell>{r.service_at}</TableCell>
-                                        <TableCell>RM {Number(r.amount).toFixed(2)}</TableCell>
-                                        <TableCell>
-                                            <IconButton onClick={() => handleEdit(r)} size="small" color="primary"><EditIcon /></IconButton>
-                                            <IconButton onClick={() => handleDelete(r.id)} disabled={loading} size="small" color="error"><DeleteIcon /></IconButton>
+                                        <TableCell sx={{ minWidth: 90 }}>{new Date(r.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}</TableCell>
+                                        <TableCell sx={{ minWidth: 180, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
+                                            <Typography variant="body2" fontWeight={600} sx={{ mb: 0.25, fontSize: '0.85rem', lineHeight: 1.2, color: '#fff' }}>{r.problem}</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', lineHeight: 1.1, color: '#b0b0b0' }}>{r.service_at}</Typography>
+                                        </TableCell>
+                                        <TableCell sx={{ textAlign: 'right' }}>{Number(r.amount).toFixed(2)}</TableCell>
+                                        <TableCell align="center" sx={{ minWidth: 90 }}>
+                                            <Stack direction="row" spacing={0.5} justifyContent="center">
+                                                <IconButton onClick={() => handleEdit(r)} size="small" color="primary" sx={{ p: 0.5 }}><EditIcon fontSize="small" /></IconButton>
+                                                <IconButton onClick={() => handleDelete(r.id)} disabled={loading} size="small" color="error" sx={{ p: 0.5 }}><DeleteIcon fontSize="small" /></IconButton>
+                                            </Stack>
                                         </TableCell>
                                     </>
                                 )}
@@ -242,7 +274,7 @@ export default function MaintenanceRecords({ showAdd, setShowAdd }) {
                         ))}
                     </TableBody>
                 </Table>
-            </TableContainer>
+            </Box>
             {error && <Box color="error.main" mb={1}>{error}</Box>}
             {loading && <CircularProgress size={32} sx={{ position: 'absolute', top: 16, right: 16 }} />}
         </Box>

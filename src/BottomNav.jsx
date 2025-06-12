@@ -7,16 +7,17 @@ import BuildIcon from '@mui/icons-material/Build';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/SpaceDashboard';
 
-export default function BottomNav({ active, onNavigate, onLogout }) {
+const BottomNav = React.memo(function BottomNav({ active, onNavigate, onLogout }) {
+    const handleChange = React.useCallback((_, newValue) => {
+        if (newValue === 'logout') onLogout();
+        else onNavigate(newValue);
+    }, [onNavigate, onLogout]);
     return (
         <Paper sx={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 100 }} elevation={3}>
             <BottomNavigation
                 showLabels={false}
                 value={active}
-                onChange={(_, newValue) => {
-                    if (newValue === 'logout') onLogout();
-                    else onNavigate(newValue);
-                }}
+                onChange={handleChange}
             >
                 <BottomNavigationAction label="Dashboard" value="home" icon={<DashboardIcon />} />
                 <BottomNavigationAction label="Profile" value="profile" icon={<PersonIcon />} />
@@ -26,4 +27,6 @@ export default function BottomNav({ active, onNavigate, onLogout }) {
             </BottomNavigation>
         </Paper>
     );
-}
+});
+
+export default BottomNav;

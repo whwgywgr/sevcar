@@ -4,7 +4,9 @@ import { SpeedDial, SpeedDialAction, SpeedDialIcon } from '@mui/material';
 import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
 import BuildIcon from '@mui/icons-material/Build';
 
-export default function FabSpeedDial({ onAddFuel, onAddMaintenance, ...props }) {
+const FabSpeedDial = React.memo(function FabSpeedDial({ onAddFuel, onAddMaintenance, ...props }) {
+    const handleAddFuel = React.useCallback(() => onAddFuel(), [onAddFuel]);
+    const handleAddMaintenance = React.useCallback(() => onAddMaintenance(), [onAddMaintenance]);
     return (
         <SpeedDial
             ariaLabel="Add record"
@@ -15,13 +17,15 @@ export default function FabSpeedDial({ onAddFuel, onAddMaintenance, ...props }) 
             <SpeedDialAction
                 icon={<LocalGasStationIcon />}
                 tooltipTitle="Add Fuel"
-                onClick={onAddFuel}
+                onClick={handleAddFuel}
             />
             <SpeedDialAction
                 icon={<BuildIcon />}
                 tooltipTitle="Add Maintenance"
-                onClick={onAddMaintenance}
+                onClick={handleAddMaintenance}
             />
         </SpeedDial>
     );
-}
+});
+
+export default FabSpeedDial;

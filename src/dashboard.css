@@ -1,53 +1,293 @@
-/* Modern dashboard layout styles */
+/*
+  dashboard.css - Modern dark frosted glass (liquid glass) theme
+  - Uses Inter font, responsive font sizes
+  - Modern table, flex/grid, glassmorphism, subtle animations
+*/
+
+:root {
+    --glass-bg: rgba(30, 41, 59, 0.65);
+    /* dark blue glass */
+    --glass-blur: 18px;
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --primary: #2563eb;
+    --accent: #60a5fa;
+    --text-main: #f3f4f6;
+    --text-secondary: #a5b4fc;
+    --card-radius: 18px;
+    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
+    --table-header-bg: rgba(30, 41, 59, 0.85);
+    --table-row-hover: rgba(96, 165, 250, 0.08);
+    --fadein: fadein 0.7s cubic-bezier(.4, 0, .2, 1);
+}
+
+html,
+body {
+    height: 100%;
+    background: linear-gradient(135deg, #181e29 0%, #232b3b 60%, #10131a 100%);
+    color: var(--text-main);
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 16px;
+    min-height: 100vh;
+    letter-spacing: 0.01em;
+}
+
+body,
+#root {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
 .app-bg {
     min-height: 100vh;
-    background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
-    transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, #181e29 0%, #232b3b 60%, #10131a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
 }
 
 .app-container {
-    max-width: 1000px;
+    width: 100%;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 0 8px 80px 8px;
-    transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 2vw 1vw 88px 1vw;
+    /* bottom padding to prevent overlap with navbar */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .app-grid {
-    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 2.5rem;
+    animation: var(--fadein);
 }
 
-@media (min-width: 600px) {
+@media (min-width: 700px) {
     .app-grid {
-        gap: 32px;
+        flex-direction: row;
+        gap: 3.5rem;
     }
 }
 
-@media (min-width: 900px) {
-    .app-container {
-        padding-left: 24px;
-        padding-right: 24px;
-    }
-}
-
-/* Card and button hover/active transitions for smoother UI */
+/* Frosted glass card */
 .MuiCard-root,
+.MuiPaper-root,
+.glass-card,
+.MuiDialog-paper {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-radius: var(--card-radius) !important;
+    border: 1.5px solid var(--glass-border);
+    box-shadow: var(--shadow);
+    color: var(--text-main);
+    transition: box-shadow 0.2s, border 0.2s;
+    animation: var(--fadein);
+}
+
+.MuiCard-root:hover,
+.glass-card:hover,
+.MuiPaper-root:hover {
+    box-shadow: 0 12px 36px 0 rgba(96, 165, 250, 0.18);
+    border-color: var(--accent);
+}
+
+/* Responsive font size */
+html {
+    font-size: clamp(15px, 2vw, 18px);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.MuiTypography-h5,
+.MuiTypography-h6 {
+    color: var(--text-main);
+    font-family: 'Inter', Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.MuiTypography-body2,
+.MuiTypography-body1,
+.MuiTypography-subtitle1 {
+    color: var(--text-secondary);
+}
+
+/* Modern responsive table */
+.MuiTableContainer-root,
+.MuiTable-root {
+    background: transparent !important;
+    box-shadow: none;
+}
+
+.MuiTableHead-root,
+.MuiTableCell-head {
+    background: var(--table-header-bg) !important;
+    color: var(--text-main) !important;
+    font-weight: 600;
+    font-size: 1.05em;
+    letter-spacing: 0.01em;
+    border-bottom: 2px solid var(--accent);
+}
+
+.MuiTableRow-root {
+    transition: background 0.18s;
+}
+
+.MuiTableRow-root:hover {
+    background: var(--table-row-hover) !important;
+}
+
+.MuiTableCell-root {
+    color: var(--text-main) !important;
+    border-bottom: 1px solid rgba(96, 165, 250, 0.08);
+    font-size: 1em;
+    padding: 0.7em 0.8em;
+}
+
+@media (max-width: 700px) {
+
+    .MuiTableCell-root,
+    .MuiTableHead-root {
+        font-size: 0.95em;
+        padding: 0.5em 0.4em;
+    }
+}
+
+/* Responsive table: horizontal scroll on small screens */
+.MuiTableContainer-root {
+    overflow-x: auto;
+    border-radius: var(--card-radius);
+}
+
+/* Button, FAB, Toggle, etc. */
 .MuiButton-root,
+.MuiFab-root,
 .MuiToggleButton-root {
-    transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-        background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-        color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', Arial, sans-serif;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: background 0.18s, box-shadow 0.18s, color 0.18s;
+    box-shadow: none;
 }
 
-.MuiCard-root:hover {
-    box-shadow: 0 4px 24px 0 rgba(37, 99, 235, 0.08);
+.MuiButton-root:hover,
+.MuiFab-root:hover,
+.MuiToggleButton-root:hover {
+    background: var(--accent);
+    color: #fff;
 }
 
-.MuiButton-root:active,
-.MuiToggleButton-root:active {
-    transform: scale(0.97);
-    transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+.MuiFab-root {
+    background: var(--primary) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 16px 0 rgba(37, 99, 235, 0.18);
+}
+
+.MuiFab-root:hover {
+    background: var(--accent) !important;
+}
+
+/* Bottom nav glass effect */
+.MuiPaper-root.MuiBottomNavigation-root,
+.MuiPaper-root.MuiBottomNavigationAction-root {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    border-top: 1.5px solid var(--glass-border);
+    box-shadow: 0 -2px 24px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* Dialog glass effect */
+.MuiDialog-paper {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    border-radius: var(--card-radius) !important;
+    border: 1.5px solid var(--glass-border);
+    box-shadow: var(--shadow);
+    color: var(--text-main);
+}
+
+/* Animations */
+@keyframes fadein {
+    from {
+        opacity: 0;
+        transform: translateY(32px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.fadein {
+    animation: var(--fadein);
+}
+
+/* Subtle hover for icons */
+.MuiIconButton-root {
+    transition: color 0.18s, background 0.18s;
+    color: var(--accent);
+}
+
+.MuiIconButton-root:hover {
+    color: #fff;
+    background: var(--accent);
+}
+
+/* Notification glass */
+.MuiSnackbar-root .MuiAlert-root {
+    background: var(--glass-bg) !important;
+    color: var(--text-main) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    border-radius: 12px;
+    border: 1.5px solid var(--glass-border);
+    box-shadow: var(--shadow);
+}
+
+/* Misc */
+::-webkit-scrollbar {
+    width: 8px;
+    background: #232b3b;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 8px;
+}
+
+input,
+textarea,
+.MuiInputBase-root {
+    background: rgba(30, 41, 59, 0.45) !important;
+    color: var(--text-main) !important;
+    border-radius: 8px !important;
+    border: 1.5px solid var(--glass-border) !important;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 1em;
+    transition: border 0.18s;
+}
+
+input:focus,
+textarea:focus,
+.MuiInputBase-root.Mui-focused {
+    border-color: var(--accent) !important;
+}
+
+.MuiAlert-root {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 1em;
+}
+
+/* Utility: hide scroll on mobile for app-bg */
+.app-bg {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
 }

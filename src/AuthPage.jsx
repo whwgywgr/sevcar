@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
-import { useNotification } from './Notification';
+import { useNotification } from './useNotification';
 import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Alert, IconButton } from '@mui/material';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
@@ -68,6 +68,7 @@ export default function AuthPage({ onAuth }) {
                     </form>
                     <Button
                         color="primary"
+                        variant="text"
                         onClick={() => setIsLogin(!isLogin)}
                         sx={{ textTransform: 'none', mt: 1 }}
                     >

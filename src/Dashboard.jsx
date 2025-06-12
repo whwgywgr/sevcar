@@ -104,12 +104,12 @@ export default function Dashboard() {
         <Box maxWidth={900} mx="auto" my={2} px={1}>
             <Typography variant="h5" fontWeight={700} mb={2} textAlign="left">Dashboard</Typography>
             <Box
-                display="grid"
-                gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: '2fr 1fr' }}
+                display="flex"
+                flexDirection="column"
                 gap={3}
                 alignItems="stretch"
             >
-                <Card sx={{ minHeight: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <Card sx={{ minHeight: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center', mb: 3 }}>
                     <CardContent>
                         <Typography variant="subtitle1" fontWeight={600} mb={1}>Total Fuel</Typography>
                         <ToggleButtonGroup
@@ -117,6 +117,7 @@ export default function Dashboard() {
                             exclusive
                             onChange={(_, v) => v && setFuelFilter(v)}
                             size="small"
+                            className="dashboard-filter-group"
                             sx={{ mb: 2 }}
                         >
                             {FUEL_FILTERS.map(f => (
