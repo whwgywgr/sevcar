@@ -1,7 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import AuthPage from './AuthPage';
 import { supabase } from './supabaseClient';
-import { NotificationProvider, useNotification } from './useNotification';
+import { NotificationProvider } from './Notification';
+import { useNotification } from './useNotification';
 import BottomNav from './BottomNav';
 import FabSpeedDial from './FabSpeedDial';
 import './dashboard.css';
