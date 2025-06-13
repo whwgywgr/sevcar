@@ -1,34 +1,24 @@
 /*
-  dashboard.css - Modern dark frosted glass (liquid glass) theme
-  - Uses Inter font, responsive font sizes
-  - Modern table, flex/grid, glassmorphism, subtle animations
+  dashboard.css - Minimal light theme, full width, black/white, 1px solid border, no shadow, no hover, fully responsive, professional UX
 */
 
 :root {
-    --glass-bg: rgba(30, 41, 59, 0.65);
-    /* dark blue glass */
-    --glass-blur: 18px;
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --primary: #2563eb;
-    --accent: #60a5fa;
-    --text-main: #f3f4f6;
-    --text-secondary: #a5b4fc;
-    --card-radius: 18px;
-    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
-    --table-header-bg: rgba(30, 41, 59, 0.85);
-    --table-row-hover: rgba(96, 165, 250, 0.08);
-    --fadein: fadein 0.7s cubic-bezier(.4, 0, .2, 1);
+    --main-bg: #fff;
+    --main-text: #000;
+    --secondary-text: #222;
+    --border: #000;
 }
 
 html,
 body {
     height: 100%;
-    background: linear-gradient(135deg, #181e29 0%, #232b3b 60%, #10131a 100%);
-    color: var(--text-main);
+    background: var(--main-bg);
+    color: var(--main-text);
     font-family: 'Inter', Arial, sans-serif;
     font-size: 16px;
     min-height: 100vh;
-    letter-spacing: 0.01em;
+    margin: 0;
+    padding: 0;
 }
 
 body,
@@ -40,7 +30,7 @@ body,
 
 .app-bg {
     min-height: 100vh;
-    background: linear-gradient(135deg, #181e29 0%, #232b3b 60%, #10131a 100%);
+    background: var(--main-bg);
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -49,10 +39,9 @@ body,
 
 .app-container {
     width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 2vw 1vw 88px 1vw;
-    /* bottom padding to prevent overlap with navbar */
+    max-width: none;
+    margin: 0;
+    padding: 0 0 88px 0;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -61,45 +50,27 @@ body,
 .app-grid {
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
-    animation: var(--fadein);
+    gap: 2rem;
 }
 
 @media (min-width: 700px) {
     .app-grid {
         flex-direction: row;
-        gap: 3.5rem;
+        gap: 2.5rem;
     }
 }
 
-/* Frosted glass card */
+/* Card, Paper, Dialog: white bg, black border, no shadow */
 .MuiCard-root,
 .MuiPaper-root,
-.glass-card,
 .MuiDialog-paper {
-    background: var(--glass-bg) !important;
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border-radius: var(--card-radius) !important;
-    border: 1.5px solid var(--glass-border);
-    box-shadow: var(--shadow);
-    color: var(--text-main);
-    transition: box-shadow 0.2s, border 0.2s;
-    animation: var(--fadein);
+    background: #fff !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: var(--main-text);
 }
 
-.MuiCard-root:hover,
-.glass-card:hover,
-.MuiPaper-root:hover {
-    box-shadow: 0 12px 36px 0 rgba(96, 165, 250, 0.18);
-    border-color: var(--accent);
-}
-
-/* Responsive font size */
-html {
-    font-size: clamp(15px, 2vw, 18px);
-}
-
+/* Typography */
 h1,
 h2,
 h3,
@@ -108,48 +79,50 @@ h5,
 h6,
 .MuiTypography-h5,
 .MuiTypography-h6 {
-    color: var(--text-main);
+    color: var(--main-text);
     font-family: 'Inter', Arial, sans-serif;
     font-weight: 700;
-    letter-spacing: 0.01em;
 }
 
 .MuiTypography-body2,
 .MuiTypography-body1,
 .MuiTypography-subtitle1 {
-    color: var(--text-secondary);
+    color: var(--secondary-text);
 }
 
-/* Modern responsive table */
+/* Table: white bg, black border, no hover */
 .MuiTableContainer-root,
-.MuiTable-root {
-    background: transparent !important;
+.MuiTable-root,
+table {
+    width: 100% !important;
+    background: #fff !important;
     box-shadow: none;
+    border-collapse: collapse;
 }
 
 .MuiTableHead-root,
 .MuiTableCell-head {
-    background: var(--table-header-bg) !important;
-    color: var(--text-main) !important;
+    background: #fff !important;
+    color: #000 !important;
     font-weight: 600;
-    font-size: 1.05em;
-    letter-spacing: 0.01em;
-    border-bottom: 2px solid var(--accent);
 }
 
 .MuiTableRow-root {
-    transition: background 0.18s;
+    background: #fff !important;
+    transition: none;
 }
 
 .MuiTableRow-root:hover {
-    background: var(--table-row-hover) !important;
+    background: #fff !important;
 }
 
 .MuiTableCell-root {
-    color: var(--text-main) !important;
-    border-bottom: 1px solid rgba(96, 165, 250, 0.08);
+    color: #000 !important;
     font-size: 1em;
     padding: 0.7em 0.8em;
+    width: auto;
+    max-width: none;
+    min-width: 0;
 }
 
 @media (max-width: 700px) {
@@ -161,129 +134,105 @@ h6,
     }
 }
 
-/* Responsive table: horizontal scroll on small screens */
 .MuiTableContainer-root {
     overflow-x: auto;
-    border-radius: var(--card-radius);
+    border-radius: 0;
 }
 
-/* Button, FAB, Toggle, etc. */
+/* Button, FAB, Toggle: no shadow, black border, no hover */
 .MuiButton-root,
 .MuiFab-root,
 .MuiToggleButton-root {
     font-family: 'Inter', Arial, sans-serif;
     font-weight: 600;
-    border-radius: 12px;
-    transition: background 0.18s, box-shadow 0.18s, color 0.18s;
+    border-radius: 0;
     box-shadow: none;
+    background: #fff;
+    color: #000;
+    transition: none;
 }
 
 .MuiButton-root:hover,
 .MuiFab-root:hover,
 .MuiToggleButton-root:hover {
-    background: var(--accent);
-    color: #fff;
+    background: #fff;
+    color: #000;
 }
 
 .MuiFab-root {
-    background: var(--primary) !important;
-    color: #fff !important;
-    box-shadow: 0 4px 16px 0 rgba(37, 99, 235, 0.18);
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
 }
 
 .MuiFab-root:hover {
-    background: var(--accent) !important;
+    background: #fff !important;
 }
 
-/* Bottom nav glass effect */
+/* Bottom nav: white bg, black border, no shadow */
 .MuiPaper-root.MuiBottomNavigation-root,
 .MuiPaper-root.MuiBottomNavigationAction-root {
-    background: var(--glass-bg) !important;
-    backdrop-filter: blur(var(--glass-blur));
-    border-top: 1.5px solid var(--glass-border);
-    box-shadow: 0 -2px 24px 0 rgba(0, 0, 0, 0.18);
+    background: #fff !important;
+    box-shadow: none !important;
 }
 
-/* Dialog glass effect */
+/* Dialog: white bg, black border, no shadow */
 .MuiDialog-paper {
-    background: var(--glass-bg) !important;
-    backdrop-filter: blur(var(--glass-blur));
-    border-radius: var(--card-radius) !important;
-    border: 1.5px solid var(--glass-border);
-    box-shadow: var(--shadow);
-    color: var(--text-main);
+    background: #fff !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: #000;
 }
 
-/* Animations */
-@keyframes fadein {
-    from {
-        opacity: 0;
-        transform: translateY(32px);
-    }
-
-    to {
-        opacity: 1;
-        transform: none;
-    }
-}
-
-.fadein {
-    animation: var(--fadein);
-}
-
-/* Subtle hover for icons */
+/* IconButton: black, no hover */
 .MuiIconButton-root {
-    transition: color 0.18s, background 0.18s;
-    color: var(--accent);
+    color: #000;
+    transition: none;
 }
 
 .MuiIconButton-root:hover {
-    color: #fff;
-    background: var(--accent);
+    color: #000;
+    background: #fff;
 }
 
-/* Notification glass */
+/* Notification: white bg, black border, no shadow */
 .MuiSnackbar-root .MuiAlert-root {
-    background: var(--glass-bg) !important;
-    color: var(--text-main) !important;
-    backdrop-filter: blur(var(--glass-blur));
-    border-radius: 12px;
-    border: 1.5px solid var(--glass-border);
-    box-shadow: var(--shadow);
-}
-
-/* Misc */
-::-webkit-scrollbar {
-    width: 8px;
-    background: #232b3b;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 8px;
+    background: #fff !important;
+    color: #000 !important;
+    border-radius: 0;
+    box-shadow: none !important;
 }
 
 input,
 textarea,
 .MuiInputBase-root {
-    background: rgba(30, 41, 59, 0.45) !important;
-    color: var(--text-main) !important;
-    border-radius: 8px !important;
-    border: 1.5px solid var(--glass-border) !important;
+    background: #fff !important;
+    color: #000 !important;
+    border-radius: 0 !important;
     font-family: 'Inter', Arial, sans-serif;
     font-size: 1em;
-    transition: border 0.18s;
+    transition: none;
 }
 
 input:focus,
 textarea:focus,
 .MuiInputBase-root.Mui-focused {
-    border-color: var(--accent) !important;
+    border-color: #000 !important;
 }
 
 .MuiAlert-root {
     font-family: 'Inter', Arial, sans-serif;
     font-size: 1em;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    background: #fff;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #eee;
+    border-radius: 0;
 }
 
 /* Utility: hide scroll on mobile for app-bg */

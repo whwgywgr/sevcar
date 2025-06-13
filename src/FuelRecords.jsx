@@ -42,7 +42,6 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
     const [date, setDate] = useState('');
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [editId, setEditId] = useState(null);
     const [editAmount, setEditAmount] = useState('');
     const [editDate, setEditDate] = useState('');
@@ -53,7 +52,6 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
 
     const fetchRecords = React.useCallback(async () => {
         setLoading(true);
-        setError('');
         const user = (await supabase.auth.getUser()).data.user;
         const cacheKey = `${user.id}-all-${page}`; // filter removed from key
         if (cache[cacheKey]) {
@@ -66,14 +64,14 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
         // No date filter
         query = query.range((page - 1) * rowsPerPage, page * rowsPerPage - 1);
         const { data, error, count } = await query;
-        if (error) setError(error.message);
+        if (error) notify(error.message, 'error');
         else {
             setRecords(data);
             setTotalRows(count || 0);
             cache[cacheKey] = { data, count };
         }
         setLoading(false);
-    }, [page]); // filter removed from deps
+    }, [page, notify]); // filter removed from deps, added notify
 
     useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
@@ -98,12 +96,10 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
     const handleAdd = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
         try {
             const userResult = await supabase.auth.getUser();
             const user = userResult.data.user;
             if (!user) {
-                setError('No user logged in');
                 notify('No user logged in', 'error');
                 setLoading(false);
                 return;
@@ -114,7 +110,6 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
                 date,
             });
             if (error) {
-                setError(error.message);
                 notify(error.message, 'error');
             } else {
                 notify('Fuel record added', 'success');
@@ -125,7 +120,6 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
             // Invalidate cache after add
             Object.keys(cache).forEach(k => { if (k.startsWith(user.id + '-all')) delete cache[k]; });
         } catch (err) {
-            setError('Unexpected error: ' + err.message);
             notify('Unexpected error: ' + err.message, 'error');
         }
         setLoading(false);
@@ -139,14 +133,12 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
 
     const handleEditSave = async (id) => {
         setLoading(true);
-        setError('');
         const user = (await supabase.auth.getUser()).data.user;
         const { error } = await supabase.from('fuel_records').update({
             amount: parseFloat(editAmount),
             date: editDate,
         }).eq('id', id);
         if (error) {
-            setError(error.message);
             notify(error.message, 'error');
         } else {
             notify('Fuel record updated', 'success');
@@ -163,11 +155,9 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this record?')) return;
         setLoading(true);
-        setError('');
         const user = (await supabase.auth.getUser()).data.user;
         const { error } = await supabase.from('fuel_records').delete().eq('id', id);
         if (error) {
-            setError(error.message);
             notify(error.message, 'error');
         } else {
             notify('Fuel record deleted', 'success');
@@ -241,75 +231,51 @@ export default function FuelRecords({ showAdd, setShowAdd }) {
                 </form>
             </AnimatedDialog>
             <Box sx={{ overflowX: 'auto', mb: 2 }}>
-                <Table size="small" sx={{
-                    minWidth: 180,
-                    borderCollapse: 'separate',
-                    borderSpacing: 0,
-                    tableLayout: 'fixed',
-                    width: '100%',
-                    '& th, & td': {
-                        fontSize: '0.95rem',
-                        px: 1,
-                        py: 1,
-                        borderBottom: '1px solid #333',
-                        whiteSpace: 'nowrap',
-                        color: '#e0e0e0',
-                        background: '#181a1b',
-                        textAlign: 'center',
-                    },
-                    '& th': {
-                        fontWeight: 700,
-                        background: '#23272a',
-                        color: '#fff',
-                        borderBottom: '2px solid #444',
-                    },
-                    '& td': {
-                        color: '#e0e0e0',
-                        background: '#181a1b',
-                    },
-                }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell sx={{ width: '40%' }}>Date</TableCell>
-                            <TableCell sx={{ width: '40%' }}>Amount (RM)</TableCell>
-                            <TableCell sx={{ width: '20%' }}>Action</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {records.length === 0 && (
+                <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #000', borderRadius: 0 }}>
+                    <Table size="small" sx={{ minWidth: 320, width: '100%', borderCollapse: 'collapse', tableLayout: 'auto' }}>
+                        <TableHead>
                             <TableRow>
-                                <TableCell colSpan={3} align="center" sx={{ color: '#888', py: 3 }}>No records</TableCell>
+                                <TableCell sx={{ fontWeight: 700, borderBottom: '1px solid #000', background: '#fff', color: '#000' }}>Date</TableCell>
+                                <TableCell sx={{ fontWeight: 700, borderBottom: '1px solid #000', background: '#fff', color: '#000' }}>Amount (RM)</TableCell>
+                                <TableCell sx={{ fontWeight: 700, borderBottom: '1px solid #000', background: '#fff', color: '#000' }}>Action</TableCell>
                             </TableRow>
-                        )}
-                        {records.map(r => (
-                            <TableRow key={r.id} hover sx={{ cursor: editId ? 'default' : 'pointer', bgcolor: (new Date(r.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) ? 'rgba(34,197,94,0.08)' : undefined }}>
-                                {editId === r.id ? (
-                                    <>
-                                        <TableCell>
-                                            <TextField type="date" value={editDate} onChange={e => setEditDate(e.target.value)} size="small" InputLabelProps={{ shrink: true }} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} size="small" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button onClick={() => handleEditSave(r.id)} disabled={loading} size="small" variant="contained">Save</Button>
-                                            <Button onClick={() => setEditId(null)} disabled={loading} size="small" color="secondary" variant="text">Cancel</Button>
-                                        </TableCell>
-                                    </>
-                                ) : (
-                                    <>
-                                        <TableCell onClick={() => !editId && handleEdit(r)}>{r.date}</TableCell>
-                                        <TableCell onClick={() => !editId && handleEdit(r)} sx={{ textAlign: 'right' }}>{Number(r.amount).toFixed(2)}</TableCell>
-                                        <TableCell>
-                                            <IconButton onClick={() => handleEdit(r)} size="small" color="primary" aria-label="Edit record"><EditIcon /></IconButton>
-                                            <IconButton onClick={() => handleDelete(r.id)} disabled={loading} size="small" color="error" aria-label="Delete record"><DeleteIcon /></IconButton>
-                                        </TableCell>
-                                    </>
-                                )}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHead>
+                        <TableBody>
+                            {records.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={3} align="center" sx={{ color: '#888', py: 3, background: '#fff', fontSize: '0.95rem' }}>No records</TableCell>
+                                </TableRow>
+                            )}
+                            {records.map(r => (
+                                <TableRow key={r.id} sx={{ background: '#fff', '&:last-child td': { borderBottom: 0 } }}>
+                                    {editId === r.id ? (
+                                        <>
+                                            <TableCell>
+                                                <TextField type="date" value={editDate} onChange={e => setEditDate(e.target.value)} size="small" InputLabelProps={{ shrink: true }} inputProps={{ style: { fontSize: '0.95rem', padding: 2, color: '#000', background: '#fff' } }} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <TextField type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} size="small" inputProps={{ style: { fontSize: '0.95rem', padding: 2, color: '#000', background: '#fff' } }} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button onClick={() => handleEditSave(r.id)} disabled={loading} size="small" variant="contained">Save</Button>
+                                                <Button onClick={() => setEditId(null)} disabled={loading} size="small" color="secondary" variant="text">Cancel</Button>
+                                            </TableCell>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TableCell onClick={() => !editId && handleEdit(r)}>{r.date}</TableCell>
+                                            <TableCell onClick={() => !editId && handleEdit(r)} sx={{ textAlign: 'right' }}>{Number(r.amount).toFixed(2)}</TableCell>
+                                            <TableCell>
+                                                <IconButton onClick={() => handleEdit(r)} size="small" color="primary" aria-label="Edit record"><EditIcon /></IconButton>
+                                                <IconButton onClick={() => handleDelete(r.id)} disabled={loading} size="small" color="error" aria-label="Delete record"><DeleteIcon /></IconButton>
+                                            </TableCell>
+                                        </>
+                                    )}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Box>
             {totalRows > rowsPerPage && (
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} gap={2}>

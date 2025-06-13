@@ -3,19 +3,19 @@ import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
     palette: {
-        mode: 'dark',
-        primary: { main: '#2563eb' },
-        secondary: { main: '#60a5fa' },
+        mode: 'light',
+        primary: { main: '#000' },
+        secondary: { main: '#111' },
         background: {
-            default: '#181e29',
-            paper: 'rgba(30,41,59,0.65)',
+            default: '#fff',
+            paper: '#fff',
         },
         text: {
-            primary: '#f3f4f6',
-            secondary: '#a5b4fc',
+            primary: '#000',
+            secondary: '#222',
         },
     },
-    shape: { borderRadius: 18 },
+    shape: { borderRadius: 0 },
     typography: {
         fontFamily: 'Inter, Arial, sans-serif',
         fontWeightRegular: 400,
@@ -32,7 +32,16 @@ const theme = createTheme({
     components: {
         MuiCssBaseline: {
             styleOverrides: `
-                body { background: linear-gradient(120deg, #181e29 0%, #232b3b 100%); }
+                body { background: #fff; }
+                #root, .app-bg, .app-container {
+                    max-width: 90vw !important;
+                    width: 90%;
+                    margin-left: auto;
+                    margin-right: auto;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
             `,
         },
     },
