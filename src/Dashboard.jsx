@@ -109,40 +109,83 @@ export default function Dashboard() {
                 gap={3}
                 alignItems="stretch"
             >
-                <Card sx={{ minHeight: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center', mb: 3 }}>
-                    <CardContent>
-                        <Typography variant="subtitle1" fontWeight={600} mb={1}>Total Fuel</Typography>
+                <Card
+                    sx={{
+                        minHeight: 220,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        mb: 3,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease-in-out',
+                        '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: (theme) => theme.shadows[8]
+                        },
+                        bgcolor: 'background.paper',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        border: '1px solid',
+                        borderColor: 'divider'
+                    }}
+                >
+                    <CardContent sx={{ p: 3 }}>
+                        <Typography variant="subtitle1" fontWeight={700} mb={2} color="primary">Total Fuel</Typography>
                         <ToggleButtonGroup
                             value={fuelFilter}
                             exclusive
                             onChange={(_, v) => v && setFuelFilter(v)}
                             size="small"
                             className="dashboard-filter-group"
-                            sx={{ mb: 2 }}
+                            sx={{
+                                mb: 3,
+                                '& .MuiToggleButton-root': {
+                                    borderRadius: 1,
+                                    px: 2
+                                }
+                            }}
                         >
                             {FUEL_FILTERS.map(f => (
                                 <ToggleButton key={f.value} value={f.value}>{f.label}</ToggleButton>
                             ))}
                         </ToggleButtonGroup>
-                        <Typography variant="h6" sx={{ mt: 1 }}>
-                            {fuelLoading ? <CircularProgress size={20} /> : `RM ${fuelTotal !== null ? fuelTotal.toFixed(2) : '-'}`}
+                        <Typography variant="h4" sx={{ mt: 2, fontWeight: 600 }}>
+                            {fuelLoading ? <CircularProgress size={30} /> : `RM ${fuelTotal !== null ? fuelTotal.toFixed(2) : '-'}`}
                         </Typography>
                     </CardContent>
                 </Card>
-                <Card sx={{ minHeight: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <CardContent>
-                        <Typography variant="subtitle1" fontWeight={600} mb={1}>Total Maintenance</Typography>
-                        <Box display="flex" gap={3} flexDirection={{ xs: 'column', sm: 'row' }}>
-                            <Box>
-                                <Typography variant="body2">1 Year</Typography>
-                                <Typography variant="h6">
-                                    {maintenanceLoading ? <CircularProgress size={20} /> : `RM ${maintenanceTotalYear !== null ? maintenanceTotalYear.toFixed(2) : '-'}`}
+                <Card
+                    sx={{
+                        minHeight: 220,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease-in-out',
+                        '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: (theme) => theme.shadows[8]
+                        },
+                        bgcolor: 'background.paper',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        border: '1px solid',
+                        borderColor: 'divider'
+                    }}
+                >
+                    <CardContent sx={{ p: 3 }}>
+                        <Typography variant="subtitle1" fontWeight={700} mb={3} color="primary">Total Maintenance</Typography>
+                        <Box display="flex" gap={4} flexDirection={{ xs: 'column', sm: 'row' }}>
+                            <Box flex={1}>
+                                <Typography variant="body2" color="text.secondary" mb={1}>1 Year</Typography>
+                                <Typography variant="h4" fontWeight={600}>
+                                    {maintenanceLoading ? <CircularProgress size={30} /> : `RM ${maintenanceTotalYear !== null ? maintenanceTotalYear.toFixed(2) : '-'}`}
                                 </Typography>
                             </Box>
-                            <Box>
-                                <Typography variant="body2">All Time</Typography>
-                                <Typography variant="h6">
-                                    {maintenanceLoading ? <CircularProgress size={20} /> : `RM ${maintenanceTotalAll !== null ? maintenanceTotalAll.toFixed(2) : '-'}`}
+                            <Box flex={1}>
+                                <Typography variant="body2" color="text.secondary" mb={1}>All Time</Typography>
+                                <Typography variant="h4" fontWeight={600}>
+                                    {maintenanceLoading ? <CircularProgress size={30} /> : `RM ${maintenanceTotalAll !== null ? maintenanceTotalAll.toFixed(2) : '-'}`}
                                 </Typography>
                             </Box>
                         </Box>
