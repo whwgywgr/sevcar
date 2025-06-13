@@ -98,7 +98,7 @@ export default function ProfilePage() {
                 p: 4,
                 bgcolor: 'background.paper',
                 borderRadius: 3,
-                boxShadow: 3,
+                boxShadow: 1,
                 position: 'relative',
             }}
         >

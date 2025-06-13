@@ -34,8 +34,8 @@ const theme = createTheme({
             styleOverrides: `
                 body { background: #fff; }
                 #root, .app-bg, .app-container {
-                    max-width: 90vw !important;
-                    width: 90%;
+                    max-width: 100vw !important;
+                    width: 100%;
                     margin-left: auto;
                     margin-right: auto;
                     display: flex;

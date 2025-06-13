@@ -36,8 +36,8 @@ export default function AuthPage({ onAuth }) {
     };
 
     return (
-        <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" bgcolor="#e0e7ff">
-            <Card sx={{ maxWidth: 370, width: '100%', p: 3 }}>
+        <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" border={1} borderColor="divider" bgcolor="background.default">
+            <Card sx={{ maxWidth: 300, width: '100%', p: 1 }}>
                 <CardContent>
                     <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
                         <DirectionsCarIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
